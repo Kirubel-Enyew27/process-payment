@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 type PaymentRequest struct {
 	Amount    int    `json:"amount"`
@@ -61,4 +65,13 @@ type Result struct {
 			} `json:"CallbackMetadata,omitempty"`
 		} `json:"stkCallback"`
 	} `json:"Body"`
+}
+
+type Transaction struct {
+	ID        int             `json:"id"`
+	Amount    decimal.Decimal `json:"amount"`
+	Phone     string          `json:"phone"`
+	Reason    string          `json:"reason"`
+	Reference string          `json:"reference"`
+	CreatedAt time.Time       `json:"created_at"`
 }

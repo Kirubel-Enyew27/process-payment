@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"process-payment/db"
 	"process-payment/models"
+	"process-payment/storage"
 	"process-payment/utils"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
 )
 
@@ -56,6 +59,18 @@ func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.M
 
 	if err := json.Unmarshal(respBody, &response); err != nil {
 		return models.MpesaResponse{}, errors.New("failed to unmarshal response")
+	}
+
+	err = storage.SaveTransaction(db.DB, models.Transaction{
+		Amount:    decimal.NewFromInt(int64(payload.Amount)),
+		Phone:     payload.Phone,
+		Reason:    payload.Reason,
+		Reference: payload.Reference,
+		CreatedAt: time.Now(),
+	})
+
+	if err != nil {
+		return response, err
 	}
 
 	return response, nil
