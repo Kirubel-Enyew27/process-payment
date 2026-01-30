@@ -7,8 +7,7 @@ import (
 	"process-payment/clients"
 	"process-payment/models"
 	"process-payment/storage"
-	"regexp"
-	"strings"
+	"process-payment/utils"
 )
 
 func CreatePayment(ctx context.Context, req models.PaymentRequest) (models.MpesaResponse, error) {
@@ -16,21 +15,8 @@ func CreatePayment(ctx context.Context, req models.PaymentRequest) (models.Mpesa
 		return models.MpesaResponse{}, fmt.Errorf("amount should not be less than 10: %d", req.Amount)
 	}
 
-	var trimmedPhone string
-	if strings.HasPrefix(req.Phone, "+2517") {
-		trimmedPhone = req.Phone[1:]
-	} else if strings.HasPrefix(req.Phone, "2517") {
-		trimmedPhone = req.Phone
-	} else if strings.HasPrefix(req.Phone, "07") {
-		trimmedPhone = "251" + req.Phone[1:]
-	} else if strings.HasPrefix(req.Phone, "7") {
-		trimmedPhone = "251" + req.Phone
-	}
-
-	re := regexp.MustCompile(`^[0-9]+$`)
-
-	if !re.MatchString(req.Phone) || !strings.HasPrefix(trimmedPhone, "2517") || len(trimmedPhone) != 12 {
-		return models.MpesaResponse{}, fmt.Errorf("invalid phone: %s", req.Phone)
+	if err := utils.ValidatePhone(req.Phone); err != nil {
+		return models.MpesaResponse{}, err
 	}
 
 	resp, err := clients.CreatePayment(ctx, req)
