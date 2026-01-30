@@ -9,4 +9,5 @@ type Payment interface {
 	SaveTransaction(transaction models.Transaction) response.ErrorResponse
 	UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) response.ErrorResponse
 	GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse)
+	GetTransactionByID(id int) (models.Transaction, response.ErrorResponse)
 }

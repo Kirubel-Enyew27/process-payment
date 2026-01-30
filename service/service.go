@@ -10,4 +10,5 @@ type Payment interface {
 	CreatePayment(ctx context.Context, req models.PaymentRequest) (models.MpesaResponse, response.ErrorResponse)
 	UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) response.ErrorResponse
 	GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse)
+	GetTransactionByID(ctx context.Context, id int) (models.Transaction, response.ErrorResponse)
 }

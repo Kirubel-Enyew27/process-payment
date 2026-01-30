@@ -6,6 +6,7 @@ import (
 	"process-payment/models"
 	"process-payment/pkg/response"
 	"process-payment/service"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,7 @@ func (h *Handler) CreatePayment(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.SendErrorResponse(c, &response.ErrorResponse{
 			StatusCode: http.StatusBadRequest,
-			Message: err.Error(),
+			Message:    err.Error(),
 		})
 		return
 	}
@@ -45,6 +46,30 @@ func (h *Handler) CreatePayment(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"response": resp})
+	response.SendSuccessResponse(c, http.StatusCreated, resp, nil)
 
+}
+
+func (h *Handler) GetTransactionByID(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
+	defer cancel()
+
+	stringId := c.Param("id")
+	id, _ := strconv.Atoi(stringId)
+	if id == 0 {
+		err := response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "transaction id is not provided",
+		}
+		response.SendErrorResponse(c, &err)
+		return
+	}
+
+	resp, err := h.service.GetTransactionByID(ctx, id)
+	if err.Message != "" {
+		response.SendErrorResponse(c, &err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, resp, nil)
 }

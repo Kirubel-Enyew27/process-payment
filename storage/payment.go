@@ -28,6 +28,7 @@ func (st *Storage) SaveTransaction(transaction models.Transaction) response.Erro
 	`
 	_, err := st.db.Exec(sql, transaction.Amount, transaction.Phone, transaction.Reason, transaction.Reference, transaction.CreatedAt)
 	if err != nil {
+		st.logger.Error("failed to create transaction", zap.Error(err))
 		return response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
@@ -47,6 +48,7 @@ func (st *Storage) UpdateTransactionStatus(newStatus models.PaymentStatus, refer
 
 	_, err := st.db.Exec(sql, newStatus, reference)
 	if err != nil {
+		st.logger.Error("failed to update transactio", zap.Error(err))
 		return response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
@@ -59,6 +61,7 @@ func (st *Storage) UpdateTransactionStatus(newStatus models.PaymentStatus, refer
 func (st *Storage) GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse) {
 	row, err := st.db.Query("SELECT * FROM transactons where reference=?", reference)
 	if err != nil {
+		st.logger.Error("failed to get transaction by reference", zap.Error(err))
 		return models.Transaction{}, response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
@@ -69,6 +72,31 @@ func (st *Storage) GetTransactionByReference(reference string) (models.Transacti
 
 	err = row.Scan(&transaction.ID, &transaction.Amount, &transaction.Phone, &transaction.Reason, &transaction.Reference, &transaction.Status, &transaction.CreatedAt)
 	if err != nil {
+		st.logger.Error("failed to scan the rows", zap.Error(err))
+		return models.Transaction{}, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+
+	return transaction, response.ErrorResponse{}
+}
+
+func (st *Storage) GetTransactionByID(id int) (models.Transaction, response.ErrorResponse) {
+	row, err := st.db.Query("SELECT * FROM transactons where id=?", id)
+	if err != nil {
+		st.logger.Error("failed to get transaction by id", zap.Error(err))
+		return models.Transaction{}, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+
+	var transaction models.Transaction
+
+	err = row.Scan(&transaction.ID, &transaction.Amount, &transaction.Phone, &transaction.Reason, &transaction.Reference, &transaction.Status, &transaction.CreatedAt)
+	if err != nil {
+		st.logger.Error("failed to scan the rows", zap.Error(err))
 		return models.Transaction{}, response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),

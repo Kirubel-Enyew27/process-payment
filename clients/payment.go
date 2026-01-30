@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"process-payment/models"
@@ -14,9 +13,10 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
-func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.MpesaResponse, response.ErrorResponse) {
+func CreatePayment(ctx context.Context, payload models.PaymentRequest, logger *zap.Logger) (models.MpesaResponse, response.ErrorResponse) {
 	request, err := prepareRequest(payload)
 	if err != nil {
 		return models.MpesaResponse{}, response.ErrorResponse{
@@ -37,6 +37,7 @@ func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.M
 
 	token, err := GetAccessToken()
 	if err != nil {
+		logger.Error("failed to get access token", zap.Error(err))
 		return models.MpesaResponse{}, response.ErrorResponse{
 			StatusCode: http.StatusUnauthorized,
 			Message:    err.Error(),
@@ -45,6 +46,7 @@ func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.M
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
+		logger.Error("failed to create request", zap.Error(err))
 		return models.MpesaResponse{}, response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "failed to create request",
@@ -55,6 +57,7 @@ func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.M
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		logger.Error("failed to send request", zap.Error(err))
 		return models.MpesaResponse{}, response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "failed to send request",
@@ -63,17 +66,19 @@ func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.M
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.Error("failed to read response body", zap.Error(err))
 		return models.MpesaResponse{}, response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "failed to read response body",
 		}
 	}
 
-	fmt.Println("Response", string(respBody))
+	logger.Info("response", zap.Any("Response Body", string(respBody)))
 
 	var response2 models.MpesaResponse
 
 	if err := json.Unmarshal(respBody, &response2); err != nil {
+		logger.Error("failed to unmarshal response", zap.Error(err))
 		return models.MpesaResponse{}, response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "failed to unmarshal response",

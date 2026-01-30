@@ -29,6 +29,7 @@ func InitService(logger *zap.Logger, storage storage.Payment) Payment {
 
 func (srv *Service) CreatePayment(ctx context.Context, req models.PaymentRequest) (models.MpesaResponse, response.ErrorResponse) {
 	if req.Amount < 10 {
+		srv.logger.Error("amount should not be less than 10", zap.Int("amount:", req.Amount))
 		return models.MpesaResponse{}, response.ErrorResponse{
 			StatusCode: http.StatusBadRequest,
 			Message:    fmt.Sprintf("amount should not be less than 10: %d", req.Amount),
@@ -36,13 +37,14 @@ func (srv *Service) CreatePayment(ctx context.Context, req models.PaymentRequest
 	}
 
 	if err := utils.ValidatePhone(req.Phone); err != nil {
+		srv.logger.Error("phone validaton failed", zap.Error(err))
 		return models.MpesaResponse{}, response.ErrorResponse{
 			StatusCode: http.StatusBadRequest,
 			Message:    err.Error(),
 		}
 	}
 
-	resp, err := clients.CreatePayment(ctx, req)
+	resp, err := clients.CreatePayment(ctx, req, srv.logger)
 	if err.Message != "" {
 		return resp, err
 	}
@@ -78,4 +80,13 @@ func (srv *Service) GetTransactionByReference(reference string) (models.Transact
 	}
 
 	return transaction, err
+}
+
+func (srv *Service) GetTransactionByID(ctx context.Context, id int) (models.Transaction, response.ErrorResponse) {
+	transaction, err := srv.storage.GetTransactionByID(id)
+	if err.Message != "" {
+		return models.Transaction{}, err
+	}
+	return transaction, err
+
 }
