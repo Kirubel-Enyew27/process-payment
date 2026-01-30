@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"process-payment/models"
+	"process-payment/pkg/response"
 	"process-payment/service"
 	"time"
 
@@ -25,20 +26,22 @@ func InitHandler(logger *zap.Logger, timeout time.Duration, service service.Paym
 }
 
 func (h *Handler) CreatePayment(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), time.Second*30)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
 	defer cancel()
 
 	var req models.PaymentRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Error("failed to bind request", zap.Error(err))
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.SendErrorResponse(c, &response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	resp, err := h.service.CreatePayment(ctx, req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err.Message != "" {
+		response.SendErrorResponse(c, &err)
 		return
 	}
 

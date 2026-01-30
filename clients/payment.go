@@ -9,20 +9,27 @@ import (
 	"io"
 	"net/http"
 	"process-payment/models"
+	"process-payment/pkg/response"
 	"process-payment/utils"
 	"time"
 
 	"github.com/spf13/viper"
 )
 
-func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.MpesaResponse, error) {
+func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.MpesaResponse, response.ErrorResponse) {
 	request, err := prepareRequest(payload)
 	if err != nil {
-		return models.MpesaResponse{}, err
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+		}
 	}
 	payloadBytes, err := json.Marshal(request)
 	if err != nil {
-		return models.MpesaResponse{}, errors.New("failed to marshal request payload")
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "failed to marshal request payload",
+		}
 	}
 
 	mpesa_base_url := viper.GetString("MPESA_BASE_URL")
@@ -30,35 +37,50 @@ func CreatePayment(ctx context.Context, payload models.PaymentRequest) (models.M
 
 	token, err := GetAccessToken()
 	if err != nil {
-		return models.MpesaResponse{}, err
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusUnauthorized,
+			Message:    err.Error(),
+		}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
-		return models.MpesaResponse{}, errors.New("failed to create request")
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to create request",
+		}
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+token.AccessToken)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return models.MpesaResponse{}, errors.New("failed to send request")
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to send request",
+		}
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return models.MpesaResponse{}, errors.New("failed to read response body")
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to read response body",
+		}
 	}
 
 	fmt.Println("Response", string(respBody))
 
-	var response models.MpesaResponse
+	var response2 models.MpesaResponse
 
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return models.MpesaResponse{}, errors.New("failed to unmarshal response")
+	if err := json.Unmarshal(respBody, &response2); err != nil {
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to unmarshal response",
+		}
 	}
 
-	return response, nil
+	return response2, response.ErrorResponse{}
 }
 
 func prepareRequest(payload models.PaymentRequest) (models.MpesaRequest, error) {

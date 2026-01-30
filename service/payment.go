@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"process-payment/clients"
 	"process-payment/models"
+	"process-payment/pkg/response"
 	"process-payment/storage"
 	"process-payment/utils"
 	"time"
@@ -25,17 +27,23 @@ func InitService(logger *zap.Logger, storage storage.Payment) Payment {
 	}
 }
 
-func (srv *Service) CreatePayment(ctx context.Context, req models.PaymentRequest) (models.MpesaResponse, error) {
+func (srv *Service) CreatePayment(ctx context.Context, req models.PaymentRequest) (models.MpesaResponse, response.ErrorResponse) {
 	if req.Amount < 10 {
-		return models.MpesaResponse{}, fmt.Errorf("amount should not be less than 10: %d", req.Amount)
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    fmt.Sprintf("amount should not be less than 10: %d", req.Amount),
+		}
 	}
 
 	if err := utils.ValidatePhone(req.Phone); err != nil {
-		return models.MpesaResponse{}, err
+		return models.MpesaResponse{}, response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    err.Error(),
+		}
 	}
 
 	resp, err := clients.CreatePayment(ctx, req)
-	if err != nil {
+	if err.Message != "" {
 		return resp, err
 	}
 
@@ -47,25 +55,25 @@ func (srv *Service) CreatePayment(ctx context.Context, req models.PaymentRequest
 		CreatedAt: time.Now(),
 	})
 
-	if err != nil {
+	if err.Message != "" {
 		return resp, err
 	}
 
-	return resp, nil
+	return resp, response.ErrorResponse{}
 }
 
-func (srv *Service) UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) error {
+func (srv *Service) UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) response.ErrorResponse {
 	err := srv.storage.UpdateTransactionStatus(newStatus, reference)
-	if err != nil {
+	if err.Message != "" {
 		return err
 	}
 
-	return nil
+	return response.ErrorResponse{}
 }
 
-func (srv *Service) GetTransactionByReference(reference string) (models.Transaction, error) {
+func (srv *Service) GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse) {
 	transaction, err := srv.storage.GetTransactionByReference(reference)
-	if err != nil {
+	if err.Message != "" {
 		return models.Transaction{}, err
 	}
 

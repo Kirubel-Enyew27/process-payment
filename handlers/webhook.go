@@ -27,12 +27,12 @@ func (h *Handler) MpesaWebhook(c *gin.Context) {
 
 	if webhook.Envelope.Body.StkCallback.ResultCode == 0 {
 		err := h.service.UpdateTransactionStatus(models.StatusCompleted, webhook.Envelope.Body.StkCallback.MerchantRequestID)
-		if err != nil {
+		if err.Message != "" {
 			fmt.Println("failed to update transaction:", err)
 		}
 
 		transaction, err := h.service.GetTransactionByReference(webhook.Envelope.Body.StkCallback.MerchantRequestID)
-		if err != nil {
+		if err.Message != "" {
 			fmt.Println("failed to get updated transaction:", err)
 		}
 
@@ -49,7 +49,7 @@ func (h *Handler) MpesaWebhook(c *gin.Context) {
 		return
 	} else {
 		err := h.service.UpdateTransactionStatus(models.StatusFailed, webhook.Envelope.Body.StkCallback.MerchantRequestID)
-		if err != nil {
+		if err.Message != "" {
 			fmt.Println("failed to update transaction:", err)
 		}
 	}
