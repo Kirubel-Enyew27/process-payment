@@ -8,4 +8,6 @@ type Payment interface {
 	GetTransactions(c *gin.Context)
 }
 
-type User interface{}
+type User interface {
+	Register(c *gin.Context)
+}

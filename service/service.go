@@ -14,4 +14,7 @@ type Payment interface {
 	GetTransactions(ctx context.Context) ([]models.Transaction, response.ErrorResponse)
 }
 
-type User interface{}
+type User interface {
+	Register(ctx context.Context, payload models.RegisterRequest) response.ErrorResponse
+	Login(ctx context.Context, phone string) (string, response.ErrorResponse)
+}

@@ -13,4 +13,6 @@ type Payment interface {
 	GetTransactions() ([]models.Transaction, response.ErrorResponse)
 }
 
-type User interface{}
+type User interface {
+	Register(user models.User) response.ErrorResponse
+}

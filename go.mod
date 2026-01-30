@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.11.0
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/viper v1.21.0
