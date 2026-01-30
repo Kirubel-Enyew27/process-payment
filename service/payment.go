@@ -6,7 +6,7 @@ import (
 	"process-payment/storage"
 )
 
-func UpdateTransactionStatus(db *sql.DB, newStatus string, reference string) error {
+func UpdateTransactionStatus(db *sql.DB, newStatus models.PaymentStatus, reference string) error {
 	err := storage.UpdateTransactionStatus(db, newStatus, reference)
 	if err != nil {
 		return err

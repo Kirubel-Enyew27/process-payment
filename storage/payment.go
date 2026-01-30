@@ -20,7 +20,7 @@ func SaveTransaction(db *sql.DB, transaction models.Transaction) error {
 
 }
 
-func UpdateTransactionStatus(db *sql.DB, newStatus string, reference string) error {
+func UpdateTransactionStatus(db *sql.DB, newStatus models.PaymentStatus, reference string) error {
 	sql := `
 	 UPDATE transactions
 	 SET status = $1

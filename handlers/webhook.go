@@ -28,7 +28,7 @@ func MpesaWebhook(c *gin.Context) {
 	}
 
 	if webhook.Envelope.Body.StkCallback.ResultCode == 0 {
-		err := service.UpdateTransactionStatus(db.DB, "completed", webhook.Envelope.Body.StkCallback.MerchantRequestID)
+		err := service.UpdateTransactionStatus(db.DB, models.StatusCompleted, webhook.Envelope.Body.StkCallback.MerchantRequestID)
 		if err != nil {
 			fmt.Println("failed to update transaction:", err)
 		}
@@ -40,7 +40,7 @@ func MpesaWebhook(c *gin.Context) {
 
 		sms := models.SMSData{
 			Phone:   transaction.Phone,
-			Message: fmt.Sprintf("You have transaferred amount of %s via M-Pesa successfully ", transaction.Amount),
+			Message: fmt.Sprintf("You have transaferred amount of %s ETB via M-Pesa successfully ", transaction.Amount),
 		}
 
 		if err := utils.SendSMS(sms); err != nil {
@@ -49,5 +49,10 @@ func MpesaWebhook(c *gin.Context) {
 
 		c.JSON(http.StatusOK, gin.H{"msg": "webhook accepted successfully"})
 		return
+	} else {
+		err := service.UpdateTransactionStatus(db.DB, models.StatusFailed, webhook.Envelope.Body.StkCallback.MerchantRequestID)
+		if err != nil {
+			fmt.Println("failed to update transaction:", err)
+		}
 	}
 }
