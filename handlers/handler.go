@@ -7,3 +7,5 @@ type Payment interface {
 	GetTransactionByID(c *gin.Context)
 	GetTransactions(c *gin.Context)
 }
+
+type User interface{}

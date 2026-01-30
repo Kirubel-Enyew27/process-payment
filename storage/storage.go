@@ -12,3 +12,5 @@ type Payment interface {
 	GetTransactionByID(id int) (models.Transaction, response.ErrorResponse)
 	GetTransactions() ([]models.Transaction, response.ErrorResponse)
 }
+
+type User interface{}

@@ -1,4 +1,4 @@
-package service
+package payment
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"process-payment/clients"
 	"process-payment/models"
 	"process-payment/pkg/response"
+	"process-payment/service"
 	"process-payment/storage"
 	"process-payment/utils"
 	"time"
@@ -15,19 +16,19 @@ import (
 	"go.uber.org/zap"
 )
 
-type Service struct {
+type PaymentService struct {
 	logger  *zap.Logger
 	storage storage.Payment
 }
 
-func InitService(logger *zap.Logger, storage storage.Payment) Payment {
-	return &Service{
+func InitPaymentService(logger *zap.Logger, storage storage.Payment) service.Payment {
+	return &PaymentService{
 		logger:  logger,
 		storage: storage,
 	}
 }
 
-func (srv *Service) CreatePayment(ctx context.Context, req models.PaymentRequest) (models.MpesaResponse, response.ErrorResponse) {
+func (srv *PaymentService) CreatePayment(ctx context.Context, req models.PaymentRequest) (models.MpesaResponse, response.ErrorResponse) {
 	if req.Amount < 10 {
 		srv.logger.Error("amount should not be less than 10", zap.Int("amount:", req.Amount))
 		return models.MpesaResponse{}, response.ErrorResponse{
@@ -64,7 +65,7 @@ func (srv *Service) CreatePayment(ctx context.Context, req models.PaymentRequest
 	return resp, response.ErrorResponse{}
 }
 
-func (srv *Service) UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) response.ErrorResponse {
+func (srv *PaymentService) UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) response.ErrorResponse {
 	err := srv.storage.UpdateTransactionStatus(newStatus, reference)
 	if err.Message != "" {
 		return err
@@ -73,7 +74,7 @@ func (srv *Service) UpdateTransactionStatus(newStatus models.PaymentStatus, refe
 	return response.ErrorResponse{}
 }
 
-func (srv *Service) GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse) {
+func (srv *PaymentService) GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse) {
 	transaction, err := srv.storage.GetTransactionByReference(reference)
 	if err.Message != "" {
 		return models.Transaction{}, err
@@ -82,7 +83,7 @@ func (srv *Service) GetTransactionByReference(reference string) (models.Transact
 	return transaction, err
 }
 
-func (srv *Service) GetTransactionByID(ctx context.Context, id int) (models.Transaction, response.ErrorResponse) {
+func (srv *PaymentService) GetTransactionByID(ctx context.Context, id int) (models.Transaction, response.ErrorResponse) {
 	transaction, err := srv.storage.GetTransactionByID(id)
 	if err.Message != "" {
 		return models.Transaction{}, err
@@ -91,7 +92,7 @@ func (srv *Service) GetTransactionByID(ctx context.Context, id int) (models.Tran
 
 }
 
-func (srv *Service) GetTransactions(ctx context.Context) ([]models.Transaction, response.ErrorResponse) {
+func (srv *PaymentService) GetTransactions(ctx context.Context) ([]models.Transaction, response.ErrorResponse) {
 	transactions, err := srv.storage.GetTransactions()
 	if err.Message != "" {
 		return nil, err

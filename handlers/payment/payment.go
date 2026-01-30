@@ -1,8 +1,9 @@
-package handlers
+package payment
 
 import (
 	"context"
 	"net/http"
+	"process-payment/handlers"
 	"process-payment/models"
 	"process-payment/pkg/response"
 	"process-payment/service"
@@ -13,20 +14,21 @@ import (
 	"go.uber.org/zap"
 )
 
-type Handler struct {
+type PaymentHandler struct {
 	logger  *zap.Logger
 	timeout time.Duration
 	service service.Payment
 }
 
-func InitHandler(logger *zap.Logger, timeout time.Duration, service service.Payment) Payment {
-	return &Handler{
+func InitPaymentHandler(logger *zap.Logger, timeout time.Duration, service service.Payment) handlers.Payment {
+	return &PaymentHandler{
 		logger:  logger,
 		timeout: timeout,
+		service: service,
 	}
 }
 
-func (h *Handler) CreatePayment(c *gin.Context) {
+func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
 	defer cancel()
 
@@ -50,7 +52,7 @@ func (h *Handler) CreatePayment(c *gin.Context) {
 
 }
 
-func (h *Handler) GetTransactionByID(c *gin.Context) {
+func (h *PaymentHandler) GetTransactionByID(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
 	defer cancel()
 
@@ -74,7 +76,7 @@ func (h *Handler) GetTransactionByID(c *gin.Context) {
 	response.SendSuccessResponse(c, http.StatusOK, resp, nil)
 }
 
-func (h *Handler) GetTransactions(c *gin.Context) {
+func (h *PaymentHandler) GetTransactions(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
 	defer cancel()
 

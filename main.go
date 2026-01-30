@@ -3,10 +3,15 @@ package main
 import (
 	"log"
 	"process-payment/db"
-	"process-payment/handlers"
+	paymentHandler "process-payment/handlers/payment"
 	"process-payment/router"
-	"process-payment/service"
-	"process-payment/storage"
+	paymentSvc "process-payment/service/payment"
+	"process-payment/storage/payment"
+
+	userHandler "process-payment/handlers/user"
+	userSvc "process-payment/service/user"
+	"process-payment/storage/user"
+
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,11 +29,17 @@ func main() {
 	logger, _ := zap.NewDevelopment()
 	timeout := time.Second * 30
 
-	storage := storage.InitStorage(logger, DB)
-	service := service.InitService(logger, storage)
-	handler := handlers.InitHandler(logger, timeout, service)
+	// Payment
+	paymentStorage := payment.InitPaymentStorage(logger, DB)
+	paymentService := paymentSvc.InitPaymentService(logger, paymentStorage)
+	paymentHandler := paymentHandler.InitPaymentHandler(logger, timeout, paymentService)
 
-	router.SetUpRoutes(r, handler)
+	// User
+	userStorage := user.InitUserStorage(logger, DB)
+	userService := userSvc.InitUserService(logger, userStorage)
+	userHandler := userHandler.InitUserHandler(logger, timeout, userService)
+
+	router.SetUpRoutes(r, paymentHandler, userHandler)
 
 	r.Run(":8080")
 }

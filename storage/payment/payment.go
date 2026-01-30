@@ -1,27 +1,28 @@
-package storage
+package payment
 
 import (
 	"database/sql"
 	"net/http"
 	"process-payment/models"
 	"process-payment/pkg/response"
+	"process-payment/storage"
 
 	"go.uber.org/zap"
 )
 
-type Storage struct {
+type PaymentStorage struct {
 	logger *zap.Logger
 	db     *sql.DB
 }
 
-func InitStorage(logger *zap.Logger, db *sql.DB) Payment {
-	return &Storage{
+func InitPaymentStorage(logger *zap.Logger, db *sql.DB) storage.Payment {
+	return &PaymentStorage{
 		logger: logger,
 		db:     db,
 	}
 }
 
-func (st *Storage) SaveTransaction(transaction models.Transaction) response.ErrorResponse {
+func (st *PaymentStorage) SaveTransaction(transaction models.Transaction) response.ErrorResponse {
 	sql := `
 	INSERT INTO transactions(amount, phone, reason, reference, status, created_at) 
 	VALUES ( $1, $2, $3, $4, $5, $6);
@@ -39,7 +40,7 @@ func (st *Storage) SaveTransaction(transaction models.Transaction) response.Erro
 
 }
 
-func (st *Storage) UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) response.ErrorResponse {
+func (st *PaymentStorage) UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) response.ErrorResponse {
 	sql := `
 	 UPDATE transactions
 	 SET status = $1
@@ -58,7 +59,7 @@ func (st *Storage) UpdateTransactionStatus(newStatus models.PaymentStatus, refer
 	return response.ErrorResponse{}
 }
 
-func (st *Storage) GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse) {
+func (st *PaymentStorage) GetTransactionByReference(reference string) (models.Transaction, response.ErrorResponse) {
 	row, err := st.db.Query("SELECT * FROM transactons where reference=?", reference)
 	if err != nil {
 		st.logger.Error("failed to get transaction by reference", zap.Error(err))
@@ -82,7 +83,7 @@ func (st *Storage) GetTransactionByReference(reference string) (models.Transacti
 	return transaction, response.ErrorResponse{}
 }
 
-func (st *Storage) GetTransactionByID(id int) (models.Transaction, response.ErrorResponse) {
+func (st *PaymentStorage) GetTransactionByID(id int) (models.Transaction, response.ErrorResponse) {
 	row, err := st.db.Query("SELECT * FROM transactons where id=?", id)
 	if err != nil {
 		st.logger.Error("failed to get transaction by id", zap.Error(err))
@@ -106,7 +107,7 @@ func (st *Storage) GetTransactionByID(id int) (models.Transaction, response.Erro
 	return transaction, response.ErrorResponse{}
 }
 
-func (st *Storage) GetTransactions() ([]models.Transaction, response.ErrorResponse) {
+func (st *PaymentStorage) GetTransactions() ([]models.Transaction, response.ErrorResponse) {
 	rows, err := st.db.Query("SELECT * FROM transactions;")
 	if err != nil {
 		st.logger.Error("failed to fetch transactions", zap.Error(err))

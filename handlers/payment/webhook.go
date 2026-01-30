@@ -1,4 +1,4 @@
-package handlers
+package payment
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) MpesaWebhook(c *gin.Context) {
+func (h *PaymentHandler) MpesaWebhook(c *gin.Context) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
