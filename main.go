@@ -7,11 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Init() {
-	db.Connect()
-}
-
 func main() {
+	db.Connect()
+
 	router := gin.Default()
 	router.POST("/payment/process", handlers.CreatePayment)
 
