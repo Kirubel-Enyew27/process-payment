@@ -10,7 +10,7 @@ func CreateTable(db *sql.DB) {
 	createTableSql := `
 	 CREATE TABLE IF NOT EXISTS transactions(
 	 	id SERIAL PRIMARY KEY,
-		amount NUMBER,
+		amount NUMERIC,
 		phone VARCHAR(100),
 		reason VARCHAR(100),
 		reference VARCHAR(100),

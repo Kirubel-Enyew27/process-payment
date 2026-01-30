@@ -16,6 +16,8 @@ func Connect() {
 		log.Fatalf("failed to load .env values: %v", err)
 	}
 
+		viper.AutomaticEnv()
+
 	host := viper.GetString("POSTGRES_HOST")
 	port := viper.GetString("POSTGRES_PORT")
 	user := viper.GetString("POSTGRES_USERNAME")
