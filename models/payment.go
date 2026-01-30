@@ -6,6 +6,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type PaymentStatus string
+
+const (
+	StatusPending PaymentStatus = "pending"
+	StatusCompleted PaymentStatus = "completed"
+	StatusFailed PaymentStatus = "failed"
+)
+
 type PaymentRequest struct {
 	Amount    int    `json:"amount"`
 	Phone     string `json:"phone"`
