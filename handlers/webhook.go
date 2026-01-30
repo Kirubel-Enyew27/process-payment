@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"process-payment/db"
 	"process-payment/models"
+	"process-payment/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +27,10 @@ func MpesaWebhook(c *gin.Context) {
 	}
 
 	if webhook.Envelope.Body.StkCallback.ResultCode == 0 {
+		err := service.UpdateTransactionStatus(db.DB, "completed", webhook.Envelope.Body.StkCallback.MerchantRequestID)
+		if err != nil {
+			fmt.Println("Failed to update transaction:", err)
+		}
 		c.JSON(http.StatusOK, gin.H{"msg": "webhook accepted successfully"})
 		return
 	}

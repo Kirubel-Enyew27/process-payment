@@ -73,5 +73,6 @@ type Transaction struct {
 	Phone     string          `json:"phone"`
 	Reason    string          `json:"reason"`
 	Reference string          `json:"reference"`
+	Status    string          `json:"status"`
 	CreatedAt time.Time       `json:"created_at"`
 }

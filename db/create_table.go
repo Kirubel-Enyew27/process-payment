@@ -14,6 +14,7 @@ func CreateTable(db *sql.DB) {
 		phone VARCHAR(100),
 		reason VARCHAR(100),
 		reference VARCHAR(100),
+		status VARCHAR(100),
 		created_at DATE
 	 )
 	`
