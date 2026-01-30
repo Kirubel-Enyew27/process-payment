@@ -3,8 +3,8 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"process-payment/clients"
 	"process-payment/models"
+	"process-payment/service"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +21,7 @@ func CreatePayment(c *gin.Context) {
 		return
 	}
 
-	resp, err := clients.CreatePayment(ctx, req)
+	resp, err := service.CreatePayment(ctx, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
