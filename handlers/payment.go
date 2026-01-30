@@ -73,3 +73,16 @@ func (h *Handler) GetTransactionByID(c *gin.Context) {
 
 	response.SendSuccessResponse(c, http.StatusOK, resp, nil)
 }
+
+func (h *Handler) GetTransactions(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
+	defer cancel()
+
+	resp, err := h.service.GetTransactions(ctx)
+	if err.Message != "" {
+		response.SendErrorResponse(c, &err)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, resp, nil)
+}

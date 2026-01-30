@@ -90,3 +90,13 @@ func (srv *Service) GetTransactionByID(ctx context.Context, id int) (models.Tran
 	return transaction, err
 
 }
+
+func (srv *Service) GetTransactions(ctx context.Context) ([]models.Transaction, response.ErrorResponse) {
+	transactions, err := srv.storage.GetTransactions()
+	if err.Message != "" {
+		return nil, err
+	}
+
+	return transactions, response.ErrorResponse{}
+
+}

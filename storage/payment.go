@@ -105,3 +105,33 @@ func (st *Storage) GetTransactionByID(id int) (models.Transaction, response.Erro
 
 	return transaction, response.ErrorResponse{}
 }
+
+func (st *Storage) GetTransactions() ([]models.Transaction, response.ErrorResponse) {
+	rows, err := st.db.Query("SELECT * FROM transactions;")
+	if err != nil {
+		st.logger.Error("failed to fetch transactions", zap.Error(err))
+		return nil, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+	defer rows.Close()
+
+	var transactions []models.Transaction
+
+	for rows.Next() {
+		var transaction models.Transaction
+		err := rows.Scan(&transaction.ID, &transaction.Amount, &transaction.Phone, &transaction.Reason, &transaction.Reference, &transaction.Status, &transaction.CreatedAt)
+		if err != nil {
+			st.logger.Error("failed to scan the rows", zap.Error(err))
+			return nil, response.ErrorResponse{
+				StatusCode: http.StatusInternalServerError,
+				Message:    err.Error(),
+			}
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	return transactions, response.ErrorResponse{}
+
+}
