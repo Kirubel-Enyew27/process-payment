@@ -34,3 +34,19 @@ func UpdateTransactionStatus(db *sql.DB, newStatus string, reference string) err
 
 	return nil
 }
+
+func GetTransactionByReference(db *sql.DB, reference string) (models.Transaction, error) {
+	row, err := db.Query("SELECT * FROM transactons where reference=?", reference)
+	if err != nil {
+		return models.Transaction{}, fmt.Errorf("failed to get transaction by reference: %v", err)
+	}
+
+	var transaction models.Transaction
+
+	err = row.Scan(&transaction.ID, &transaction.Amount, &transaction.Phone, &transaction.Reason, &transaction.Reference, &transaction.Status, &transaction.CreatedAt)
+	if err != nil {
+		return models.Transaction{}, fmt.Errorf("failed to scan transaction: %v", err)
+	}
+
+	return transaction, nil
+}
