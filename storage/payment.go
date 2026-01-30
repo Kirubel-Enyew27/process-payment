@@ -4,14 +4,28 @@ import (
 	"database/sql"
 	"fmt"
 	"process-payment/models"
+
+	"go.uber.org/zap"
 )
 
-func SaveTransaction(db *sql.DB, transaction models.Transaction) error {
+type Storage struct {
+	logger *zap.Logger
+	db     *sql.DB
+}
+
+func InitStorage(logger *zap.Logger, db *sql.DB) Payment {
+	return &Storage{
+		logger: logger,
+		db:     db,
+	}
+}
+
+func (st *Storage) SaveTransaction(transaction models.Transaction) error {
 	sql := `
 	INSERT INTO transactions(amount, phone, reason, reference, status, created_at) 
 	VALUES ( $1, $2, $3, $4, $5, $6);
 	`
-	_, err := db.Exec(sql, transaction.Amount, transaction.Phone, transaction.Reason, transaction.Reference, transaction.CreatedAt)
+	_, err := st.db.Exec(sql, transaction.Amount, transaction.Phone, transaction.Reason, transaction.Reference, transaction.CreatedAt)
 	if err != nil {
 		return fmt.Errorf("failed to save transaction: %v", err)
 	}
@@ -20,14 +34,14 @@ func SaveTransaction(db *sql.DB, transaction models.Transaction) error {
 
 }
 
-func UpdateTransactionStatus(db *sql.DB, newStatus models.PaymentStatus, reference string) error {
+func (st *Storage) UpdateTransactionStatus(newStatus models.PaymentStatus, reference string) error {
 	sql := `
 	 UPDATE transactions
 	 SET status = $1
 	 WHERE reference = $2;
 	`
 
-	_, err := db.Exec(sql, newStatus, reference)
+	_, err := st.db.Exec(sql, newStatus, reference)
 	if err != nil {
 		return fmt.Errorf("failed to update transaction status: %v", err)
 	}
@@ -35,8 +49,8 @@ func UpdateTransactionStatus(db *sql.DB, newStatus models.PaymentStatus, referen
 	return nil
 }
 
-func GetTransactionByReference(db *sql.DB, reference string) (models.Transaction, error) {
-	row, err := db.Query("SELECT * FROM transactons where reference=?", reference)
+func (st *Storage) GetTransactionByReference(reference string) (models.Transaction, error) {
+	row, err := st.db.Query("SELECT * FROM transactons where reference=?", reference)
 	if err != nil {
 		return models.Transaction{}, fmt.Errorf("failed to get transaction by reference: %v", err)
 	}

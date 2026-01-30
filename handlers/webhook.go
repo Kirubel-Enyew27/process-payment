@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"process-payment/db"
 	"process-payment/models"
-	"process-payment/service"
 	"process-payment/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-func MpesaWebhook(c *gin.Context) {
+func (h *Handler) MpesaWebhook(c *gin.Context) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -28,12 +26,12 @@ func MpesaWebhook(c *gin.Context) {
 	}
 
 	if webhook.Envelope.Body.StkCallback.ResultCode == 0 {
-		err := service.UpdateTransactionStatus(db.DB, models.StatusCompleted, webhook.Envelope.Body.StkCallback.MerchantRequestID)
+		err := h.service.UpdateTransactionStatus(models.StatusCompleted, webhook.Envelope.Body.StkCallback.MerchantRequestID)
 		if err != nil {
 			fmt.Println("failed to update transaction:", err)
 		}
 
-		transaction, err := service.GetTransactionByReference(db.DB, webhook.Envelope.Body.StkCallback.MerchantRequestID)
+		transaction, err := h.service.GetTransactionByReference(webhook.Envelope.Body.StkCallback.MerchantRequestID)
 		if err != nil {
 			fmt.Println("failed to get updated transaction:", err)
 		}
@@ -50,7 +48,7 @@ func MpesaWebhook(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"msg": "webhook accepted successfully"})
 		return
 	} else {
-		err := service.UpdateTransactionStatus(db.DB, models.StatusFailed, webhook.Envelope.Body.StkCallback.MerchantRequestID)
+		err := h.service.UpdateTransactionStatus(models.StatusFailed, webhook.Envelope.Body.StkCallback.MerchantRequestID)
 		if err != nil {
 			fmt.Println("failed to update transaction:", err)
 		}
