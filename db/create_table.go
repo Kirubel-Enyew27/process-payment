@@ -3,10 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 )
 
-func CreateTable(db *sql.DB) {
+func CreateTable(db *sql.DB) error {
 	createTableSql := `
 	 CREATE TABLE IF NOT EXISTS transactions(
 	 	id SERIAL PRIMARY KEY,
@@ -20,7 +19,8 @@ func CreateTable(db *sql.DB) {
 	`
 	_, err := db.Exec(createTableSql)
 	if err != nil {
-		log.Fatalf("Failed to create table: %v", err)
+		return fmt.Errorf("Failed to create table: %v", err)
 	}
 	fmt.Println("Table created successfully.")
+	return nil
 }

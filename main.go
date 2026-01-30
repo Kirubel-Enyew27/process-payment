@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"process-payment/db"
 	"process-payment/handlers"
 	"process-payment/service"
@@ -12,12 +13,15 @@ import (
 )
 
 func main() {
-	db.Connect()
+	DB, err := db.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	router := gin.Default()
 	logger, _ := zap.NewDevelopment()
 	timeout := time.Second * 30
-	storage := storage.InitStorage(logger, db.DB)
+	storage := storage.InitStorage(logger, DB)
 	service := service.InitService(logger, storage)
 	handler := handlers.InitHandler(logger, timeout, service)
 	router.POST("/payment/process", handler.CreatePayment)

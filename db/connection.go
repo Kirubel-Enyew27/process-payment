@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -11,12 +10,12 @@ import (
 
 var DB *sql.DB
 
-func Connect() {
+func Connect() (*sql.DB, error) {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("failed to load .env values: %v", err)
+		return DB, fmt.Errorf("failed to load .env values: %v", err)
 	}
 
-		viper.AutomaticEnv()
+	viper.AutomaticEnv()
 
 	host := viper.GetString("POSTGRES_HOST")
 	port := viper.GetString("POSTGRES_PORT")
@@ -30,12 +29,16 @@ func Connect() {
 	var err error
 	DB, err = sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("Failed to open DB connection: %v", err)
+		return DB, fmt.Errorf("Failed to open DB connection: %v", err)
 	}
 
 	if err = DB.Ping(); err != nil {
-		log.Fatalf("Failed to ping DB: %v", err)
+		return DB, fmt.Errorf("failed to ping DB: %v", err)
 	}
 
-	CreateTable(DB)
+	if err := CreateTable(DB); err != nil {
+		return DB, err
+	}
+
+	return DB, nil
 }
