@@ -36,7 +36,7 @@ func Connect() (*sql.DB, error) {
 		return DB, fmt.Errorf("failed to ping DB: %v", err)
 	}
 
-	if err := CreateTable(DB); err != nil {
+	if err := CreateTables(DB); err != nil {
 		return DB, err
 	}
 

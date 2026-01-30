@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func CreateTable(db *sql.DB) error {
+func CreateTables(db *sql.DB) error {
 	createUserTableSql := `
 	 CREATE TABLE IF NOT EXISTS users(
 	 	id SERIAL PRIMARY KEY,
