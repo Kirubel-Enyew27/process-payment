@@ -15,10 +15,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 func main() {
+	viper.AutomaticEnv()
 	DB, err := db.Connect()
 	if err != nil {
 		log.Fatal(err)
