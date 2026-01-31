@@ -37,3 +37,26 @@ func (usr *UserStorage) Register(user models.User) response.ErrorResponse {
 
 	return response.ErrorResponse{}
 }
+
+func (usr *UserStorage) GetUserByPhone(phone string) (models.User, response.ErrorResponse) {
+	row, err := usr.db.Query("SELECT * FROM users where phone=?", phone)
+	if err != nil {
+		return models.User{}, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to get user by phone",
+		}
+	}
+	defer row.Close()
+
+	var user models.User
+
+	err = row.Scan(&user.ID, &user.Username, &user.Phone, &user.Role, &user.Status, &user.CreatedAt)
+	if err != nil {
+		return user, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to scan user row",
+		}
+	}
+
+	return user, response.ErrorResponse{}
+}

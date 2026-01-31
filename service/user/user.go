@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"process-payment/models"
 	"process-payment/pkg/response"
@@ -53,6 +54,52 @@ func (u *UserService) Login(ctx context.Context, phone string) (string, response
 			Message:    err.Error(),
 		}
 	}
-	
-	return "", response.ErrorResponse{}
+
+	user, errResp := u.storage.GetUserByPhone(phone)
+	if errResp.Message != "" {
+		return "", errResp
+	}
+
+	otp, err := utils.GenerateUniqueOTP("0123456789", 4)
+	if err != nil {
+		u.logger.Error("failed to generate otp", zap.Error(err))
+		return otp, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to generate otp " + err.Error(),
+		}
+	}
+
+	sms := models.SMSData{
+		Phone:   phone,
+		Message: fmt.Sprintf("Your 4-digit verification code is %v, enter the code to login", otp),
+	}
+
+	if err := utils.SendSMS(sms); err != nil {
+		u.logger.Error("failed to send otp", zap.Error(err))
+		return otp, response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    "failed to send otp" + err.Error(),
+		}
+	}
+
+	models.UserSession[otp] = user
+
+	return otp, response.ErrorResponse{}
+}
+
+func (u *UserService) VerifyOTP(ctx context.Context, otp string) (string, response.ErrorResponse) {
+	_, exists := models.UserSession[otp]
+	if !exists {
+		u.logger.Error("user not found associated with this OTP", zap.String("OTP", otp))
+		return "", response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message: "user not found associated wuth this otp",
+		}
+	}
+
+	// Token will be created here
+
+   return "", response.ErrorResponse{}
+
+
 }

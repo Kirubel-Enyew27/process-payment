@@ -15,4 +15,5 @@ type Payment interface {
 
 type User interface {
 	Register(user models.User) response.ErrorResponse
+	GetUserByPhone(phone string) (models.User, response.ErrorResponse)
 }

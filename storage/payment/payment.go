@@ -92,6 +92,7 @@ func (st *PaymentStorage) GetTransactionByID(id int) (models.Transaction, respon
 			Message:    err.Error(),
 		}
 	}
+	defer row.Close()
 
 	var transaction models.Transaction
 

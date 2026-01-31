@@ -17,4 +17,5 @@ type Payment interface {
 type User interface {
 	Register(ctx context.Context, payload models.RegisterRequest) response.ErrorResponse
 	Login(ctx context.Context, phone string) (string, response.ErrorResponse)
+	VerifyOTP(ctx context.Context, otp string) (string, response.ErrorResponse)
 }

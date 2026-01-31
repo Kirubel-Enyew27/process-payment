@@ -10,4 +10,6 @@ type Payment interface {
 
 type User interface {
 	Register(c *gin.Context)
+	Login(c *gin.Context)
+	VerifyOTP(c *gin.Context)
 }

@@ -7,6 +7,8 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+var UserSession map[string]User
+
 type User struct {
 	ID        string    `json:"id"`
 	Username  string    `json:"username"`
@@ -21,7 +23,6 @@ type RegisterRequest struct {
 	Phone    string `json:"phone"`
 	Role     string `json:"role"`
 }
-
 
 func (u *User) Validate() error {
 	err := validation.ValidateStruct(u,

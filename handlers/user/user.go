@@ -65,11 +65,34 @@ func (u UserHandler) Login(c *gin.Context) {
 		})
 	}
 
-	token, errResp := u.service.Login(ctx, phone)
+	otp, errResp := u.service.Login(ctx, phone)
 	if errResp.Message != "" {
 		response.SendErrorResponse(c, &errResp)
+		return
+	}
+
+	response.SendSuccessResponse(c, http.StatusOK, otp, nil)
+
+}
+
+func (u UserHandler) VerifyOTP(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), u.timeout)
+	defer cancel()
+
+	otp := c.Param("otp")
+	if otp == "" {
+		u.logger.Error("OTP is not prvoided")
+		response.SendErrorResponse(c, &response.ErrorResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    "OTP is not provided",
+		})
+	}
+
+	token, errResp := u.service.VerifyOTP(ctx, otp)
+	if errResp.Message != "" {
+		response.SendErrorResponse(c, &errResp)
+		return
 	}
 
 	response.SendSuccessResponse(c, http.StatusOK, token, nil)
-
 }
