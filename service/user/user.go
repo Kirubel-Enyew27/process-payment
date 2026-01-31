@@ -88,7 +88,7 @@ func (u *UserService) Login(ctx context.Context, phone string) (string, response
 }
 
 func (u *UserService) VerifyOTP(ctx context.Context, otp string) (string, response.ErrorResponse) {
-	_, exists := models.UserSession[otp]
+	user, exists := models.UserSession[otp]
 	if !exists {
 		u.logger.Error("user not found associated with this OTP", zap.String("OTP", otp))
 		return "", response.ErrorResponse{
@@ -97,9 +97,18 @@ func (u *UserService) VerifyOTP(ctx context.Context, otp string) (string, respon
 		}
 	}
 
-	// Token will be created here
+	token, err := utils.GenerateToken(user)
+	if err != nil {
+		u.logger.Error("failed to generate access token")
+		return "", response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message: "failed to generate access token",
+		}
+	}
 
-   return "", response.ErrorResponse{}
+	// TODO: store the token to the database inorder for access management later
+
+   return token, response.ErrorResponse{}
 
 
 }
