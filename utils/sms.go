@@ -2,10 +2,12 @@ package utils
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"mime/multipart"
 	"net/http"
 	"process-payment/models"
@@ -68,4 +70,25 @@ func SendSMS(data models.SMSData) error {
 	}
 
 	return nil
+}
+
+func GenerateUniqueOTP(pool string, length int) (string, error) {
+	// Create a byte slice to hold the generated OTP
+	otp := make([]byte, length)
+
+	// Use crypto/rand to generate random bytes
+	_, err := rand.Read(otp)
+	if err != nil {
+		return "", err
+	}
+
+	// Convert random bytes to a string using the provided pool
+	for i := range otp {
+		index, err := rand.Int(rand.Reader, big.NewInt(int64(len(pool))))
+		if err != nil {
+			return "", err
+		}
+		otp[i] = pool[index.Int64()]
+	}
+	return string(otp), nil
 }
