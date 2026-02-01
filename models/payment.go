@@ -9,9 +9,9 @@ import (
 type PaymentStatus string
 
 const (
-	StatusPending PaymentStatus = "pending"
+	StatusPending   PaymentStatus = "pending"
 	StatusCompleted PaymentStatus = "completed"
-	StatusFailed PaymentStatus = "failed"
+	StatusFailed    PaymentStatus = "failed"
 )
 
 type PaymentRequest struct {
@@ -77,6 +77,7 @@ type Result struct {
 
 type Transaction struct {
 	ID        int             `json:"id"`
+	UserID    int             `json:"user_id"`
 	Amount    decimal.Decimal `json:"amount"`
 	Phone     string          `json:"phone"`
 	Reason    string          `json:"reason"`

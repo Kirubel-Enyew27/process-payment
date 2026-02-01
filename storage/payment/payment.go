@@ -24,10 +24,10 @@ func InitPaymentStorage(logger *zap.Logger, db *sql.DB) storage.Payment {
 
 func (st *PaymentStorage) SaveTransaction(transaction models.Transaction) response.ErrorResponse {
 	sql := `
-	INSERT INTO transactions(amount, phone, reason, reference, status, created_at) 
+	INSERT INTO transactions(user_id, amount, phone, reason, reference, status, created_at) 
 	VALUES ( $1, $2, $3, $4, $5, $6);
 	`
-	_, err := st.db.Exec(sql, transaction.Amount, transaction.Phone, transaction.Reason, transaction.Reference, transaction.CreatedAt)
+	_, err := st.db.Exec(sql, transaction.UserID, transaction.Amount, transaction.Phone, transaction.Reason, transaction.Reference, transaction.CreatedAt)
 	if err != nil {
 		st.logger.Error("failed to create transaction", zap.Error(err))
 		return response.ErrorResponse{
