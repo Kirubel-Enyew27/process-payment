@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"process-payment/models"
+	"process-payment/pkg/response"
 	"process-payment/utils"
 
 	"github.com/gin-gonic/gin"
@@ -45,12 +46,14 @@ func (h *PaymentHandler) MpesaWebhook(c *gin.Context) {
 			fmt.Printf("failed to send sms: %v", err)
 		}
 
-		c.JSON(http.StatusOK, gin.H{"msg": "webhook accepted successfully"})
-		return
+		go response.SendSuccessResponse(c, http.StatusOK, webhook, nil)
+
 	} else {
 		err := h.service.UpdateTransactionStatus(models.StatusFailed, webhook.Envelope.Body.StkCallback.MerchantRequestID)
 		if err.Message != "" {
 			fmt.Println("failed to update transaction:", err)
 		}
+
+		go response.SendErrorResponse(c, &err)
 	}
 }
