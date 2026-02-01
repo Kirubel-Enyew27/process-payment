@@ -36,9 +36,28 @@ func CreateTables(db *sql.DB) error {
         REFERENCES users(id)
 	 )
 	`
+
 	_, err = db.Exec(createTransactionTableSql)
 	if err != nil {
 		return fmt.Errorf("Failed to create table: %v", err)
+	}
+
+	createSessionsTableSql := `
+	 CREATE TABLE IF NOT EXISTS sessions(
+		id SERIAL PRIMARY KEY,
+		user_id, INT,
+		token VARCHAR(1000),
+		expires_at DATE,
+		created_at DATE,
+	CONSTRAINT fk_user
+	  FOREIGN KEY(user_id)
+	  	REFERENCES users(id)
+	 )	
+	`
+
+	_, err = db.Exec(createSessionsTableSql)
+	if err != nil {
+		return fmt.Errorf("failed to create table: %v", err)
 	}
 
 	fmt.Println("Tables created successfully.")
