@@ -10,8 +10,9 @@ import (
 var UserSession map[string]User
 
 type Session struct {
-	ID string `json:"id"`
-	Token string `json:"token"`
+	ID        string    `json:"id"`
+	UserID    int       `json:"user_id"`
+	Token     string    `json:"token"`
 	ExpiresAt time.Time `json:"expires_at"`
 	CreatedAt time.Time `json:"created_at"`
 }

@@ -38,6 +38,22 @@ func (usr *UserStorage) Register(user models.User) response.ErrorResponse {
 	return response.ErrorResponse{}
 }
 
+func (usr UserStorage) LoginSession(session models.Session) response.ErrorResponse {
+	sql := `INSERT INTO sessions(user_id, token, expires_at, created_at)
+	VALUES (&1, &2, &3, &4);`
+
+	_, err := usr.db.Exec(sql, session.UserID, session.Token, session.ExpiresAt, session.CreatedAt)
+	if err != nil {
+		usr.logger.Error("failed to create session", zap.Error(err))
+		return response.ErrorResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
+		}
+	}
+
+	return response.ErrorResponse{}
+}
+
 func (usr *UserStorage) GetUserByPhone(phone string) (models.User, response.ErrorResponse) {
 	row, err := usr.db.Query("SELECT * FROM users where phone=?", phone)
 	if err != nil {

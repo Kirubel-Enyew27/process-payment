@@ -93,7 +93,7 @@ func (u *UserService) VerifyOTP(ctx context.Context, otp string) (string, respon
 		u.logger.Error("user not found associated with this OTP", zap.String("OTP", otp))
 		return "", response.ErrorResponse{
 			StatusCode: http.StatusBadRequest,
-			Message: "user not found associated wuth this otp",
+			Message:    "user not found associated wuth this otp",
 		}
 	}
 
@@ -102,13 +102,22 @@ func (u *UserService) VerifyOTP(ctx context.Context, otp string) (string, respon
 		u.logger.Error("failed to generate access token")
 		return "", response.ErrorResponse{
 			StatusCode: http.StatusInternalServerError,
-			Message: "failed to generate access token",
+			Message:    "failed to generate access token",
 		}
 	}
 
-	// TODO: store the token to the database inorder for access management later
+	session := models.Session{
+		ID:        user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(time.Hour * 24),
+		CreatedAt: time.Now(),
+	}
 
-   return token, response.ErrorResponse{}
+	errResp := u.storage.LoginSession(session)
+	if errResp.Message != "" {
+		return "", errResp
+	}
 
+	return token, response.ErrorResponse{}
 
 }
